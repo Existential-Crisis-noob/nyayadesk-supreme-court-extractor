@@ -1,0 +1,8 @@
+.venv/
+.cache/
+.vercel/
+__pycache__/
+*.pyc
+.DS_Store
+exports/*
+!exports/.gitkeep

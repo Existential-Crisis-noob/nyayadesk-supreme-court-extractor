@@ -1,0 +1,10 @@
+.cache
+.venv
+exports
+__pycache__
+*.pyc
+.DS_Store
+server.py
+run.sh
+start.command
+test_extractor.py

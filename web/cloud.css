@@ -1,0 +1,6 @@
+.format-card.disabled,
+.pdf-option.disabled {
+  cursor: not-allowed;
+  filter: grayscale(.35);
+  opacity: .52;
+}

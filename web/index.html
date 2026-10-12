@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#123d34" />
+    <title>NyayaDesk Extractor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/cloud.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/"><span>न</span><div><strong>NyayaDesk</strong><small>DATA EXTRACTOR</small></div></a>
+      <div class="source-state"><i></i><span>Public Supreme Court dataset</span></div>
+      <a class="repo-link" href="https://github.com/vanga/indian-supreme-court-judgments" target="_blank" rel="noreferrer">View source repository ↗</a>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <div class="eyebrow">LOCAL EXTRACTION WORKSPACE</div>
+          <h1>Take only the court data you need.</h1>
+          <p>Select years, columns and filters. The tool downloads compact metadata files—not the entire 52 GB judgment collection—and produces a clean research table.</p>
+        </div>
+        <div class="safety-card"><svg><use href="#i-shield" /></svg><div><strong>Source-first by design</strong><p>Metadata is copied from the public dataset. Analysis fields remain blank until separately verified.</p></div></div>
+      </section>
+
+      <div class="workspace">
+        <section class="builder-card">
+          <div class="section-heading">
+            <div><span>01</span><div><h2>Choose the records</h2><p>Start small. One recent year is usually best for a first export.</p></div></div>
+            <button class="text-button" id="resetForm" type="button">Reset</button>
+          </div>
+
+          <div class="form-grid">
+            <label class="field year-field"><span>Years</span><input id="years" value="2023" placeholder="2023 or 2020-2024" /><small>Use commas and ranges, from 1950 onward.</small></label>
+            <div class="year-inspector" id="yearInspector"><div><span>2023 metadata</span><strong>Check availability</strong></div><button id="inspectYear" type="button">Inspect year</button></div>
+            <label class="field"><span>Search words <em>optional</em></span><input id="query" placeholder="privacy, arbitration, Article 21…" /></label>
+            <label class="field"><span>Judge <em>optional</em></span><input id="judge" placeholder="D Y Chandrachud" /></label>
+            <label class="field"><span>Citation <em>optional</em></span><input id="citation" placeholder="2023 INSC 920" /></label>
+            <label class="field"><span>Disposal nature <em>optional</em></span><input id="disposal" placeholder="Appeal allowed" /></label>
+            <label class="field"><span>Language <em>optional</em></span><input id="language" placeholder="English or Hindi" /></label>
+            <label class="field"><span>Maximum rows</span><input id="limit" type="number" min="0" value="100" /><small>Use 0 for every matching row.</small></label>
+          </div>
+
+          <div class="divider"></div>
+          <div class="section-heading column-heading">
+            <div><span>02</span><div><h2>Choose the columns</h2><p id="columnCount">Loading schema…</p></div></div>
+            <div class="inline-actions"><button class="text-button" id="recommendedColumns" type="button">Recommended</button><button class="text-button" id="allColumns" type="button">Select all</button><button class="text-button" id="noColumns" type="button">Clear</button></div>
+          </div>
+          <div class="schema-groups" id="schemaGroups"></div>
+
+          <div class="divider"></div>
+          <div class="section-heading">
+            <div><span>03</span><div><h2>Choose the output</h2><p>CSV opens in Excel, JSONL works well for pipelines, and SQLite is queryable.</p></div></div>
+          </div>
+          <div class="output-options">
+            <label class="format-card active"><input type="radio" name="format" value="csv" checked /><span class="file-icon">CSV</span><div><strong>Spreadsheet CSV</strong><small>Best for Excel and simple review</small></div></label>
+            <label class="format-card"><input type="radio" name="format" value="jsonl" /><span class="file-icon">{ }</span><div><strong>JSON Lines</strong><small>Best for search and AI pipelines</small></div></label>
+            <label class="format-card"><input type="radio" name="format" value="sqlite" /><span class="file-icon">DB</span><div><strong>SQLite database</strong><small>Best for larger local queries</small></div></label>
+          </div>
+          <label class="pdf-option"><input id="includePdf" type="checkbox" /><span></span><div><strong>Also download matching English PDFs and extract full text</strong><small>Much slower and larger. The tool hashes each downloaded PDF and records extraction errors per row.</small></div></label>
+
+          <div class="run-bar">
+            <div class="estimate"><span>Export plan</span><strong id="planSummary">2023 · up to 100 rows · CSV</strong></div>
+            <button class="run-button" id="runExtraction" type="button"><svg><use href="#i-play" /></svg>Start extraction</button>
+          </div>
+        </section>
+
+        <aside class="activity-column">
+          <section class="activity-card current-job">
+            <div class="card-label">CURRENT JOB</div>
+            <div id="emptyJob" class="empty-job"><div>&lt;/&gt;</div><h3>No extraction running</h3><p>Configure the export and start when ready.</p></div>
+            <div id="jobPanel" hidden>
+              <div class="job-title"><div class="spinner" id="jobSpinner"></div><div><strong id="jobStatus">Preparing export</strong><small id="jobMessage">Queued</small></div></div>
+              <div class="progress-track"><i id="jobProgress"></i></div>
+              <div class="job-metrics"><div><span>Rows</span><strong id="jobRows">0</strong></div><div><span>Phase</span><strong id="jobPhase">Queued</strong></div></div>
+              <button class="download-button" id="downloadResult" hidden type="button"><svg><use href="#i-download" /></svg>Download export</button>
+              <button class="cancel-button" id="cancelJob" type="button">Cancel job</button>
+            </div>
+          </section>
+
+          <section class="activity-card">
+            <div class="card-heading"><div class="card-label">RECENT EXPORTS</div><button id="refreshFiles" type="button">Refresh</button></div>
+            <div class="file-list" id="fileList"><p class="muted">No exports yet.</p></div>
+          </section>
+
+          <section class="activity-card explainer">
+            <div class="card-label">WHAT GETS DOWNLOADED</div>
+            <ol><li><span>1</span><div><strong>Yearly Parquet metadata</strong><small>A few megabytes for most years.</small></div></li><li><span>2</span><div><strong>Only matching PDFs</strong><small>And only when you turn on full text.</small></div></li><li><span>3</span><div><strong>Your selected export</strong><small>Saved locally in the exports folder.</small></div></li></ol>
+          </section>
+        </aside>
+      </div>
+
+      <section class="data-contract">
+        <div><span class="eyebrow">DATA CONTRACT</span><h2>Extraction is not legal analysis.</h2><p>The source metadata can provide names, dates, citations, judges and disposal information. Reliable ratio, holding, treatment and statute extraction requires a second pipeline with paragraph-level evidence and review.</p></div>
+        <div class="contract-grid"><div><span>Source fields</span><strong>Copied as published</strong></div><div><span>Derived fields</span><strong>Mechanical and traceable</strong></div><div><span>Analysis fields</span><strong>Blank until verified</strong></div></div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status"></div>
+
+    <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.7 3.2 7.8 7.5 9.5 4.3-1.7 7.5-4.8 7.5-9.5V6z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z"/></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 20h16"/></symbol>
+    </svg>
+    <script src="/app.js"></script>
+  </body>
+</html>
